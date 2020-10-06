@@ -3,6 +3,8 @@
 CandleFX is a JavaFX library that provides a candle-stick chart implementation that supports incremental paging of data, 
 live syncing of real-time trading data, and tries hard to be responsive and snappy.
 
+![CandleFX screenshot](https://github.com/brcolow/candlefx/raw/assets/candle-stick-chart.png)
+
 ## Caveat
 
 This code was written about 5 years ago (circa 2015) for a project that never saw the light of day. I am ripping out
@@ -157,6 +159,7 @@ The `FastMoney` implementation is from [mikvor/money-conversion]([https://github
 
 ## TODO
 
+* Sort granularities in CandleStickChartToolbar.
 * Remove the now unused FontAwesome glyph code stuff.
 * Flesh out a full README example.
 * Move CandleStickChartExample to a `com.brcolow.candlefxexample` module (or something like that) and get rid of
