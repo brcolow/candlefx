@@ -143,10 +143,13 @@ public class CandleStickChart extends Region {
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
      * be instantiated by a {@link CandleStickChartContainer}.
      *
+     * @param exchange           the {@code Exchange} object on which the trades represented by candles happened on
      * @param candleDataSupplier the {@code CandleDataSupplier} that will supply contiguous chunks of
      *                           candle data, where successive supplies will be farther back in time
      * @param tradePair          the {@code TradePair} that this chart displays trading data for (the base (first) currency
      *                           will be the unit of the volume axis and the counter (second) currency will be the unit of the y-axis)
+     * @param liveSyncing        if {@literal true} the chart will be updated in real-time to reflect on-going trading
+     *                           activity
      * @param secondsPerCandle   the duration in seconds each candle represents
      * @param containerWidth     the width property of the parent node that contains the chart
      * @param containerHeight    the height property of the parent node that contains the chart
@@ -154,19 +157,10 @@ public class CandleStickChart extends Region {
     CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, TradePair tradePair,
                      boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
                      ObservableNumberValue containerHeight) {
-        logger.info("CandleStickChart ctor, current thread = " + Thread.currentThread());
         if (!Platform.isFxApplicationThread()) {
             throw new IllegalArgumentException("CandleStickChart must be constructed on the JavaFX Application " +
                     "Thread but was called from \"" + Thread.currentThread() + "\".");
         }
-        logger.info("Inside CandleStickChart ctor");
-        logger.info("exchange = " + exchange);
-        logger.info("candleDataSupplier = " + candleDataSupplier);
-        logger.info("tradePair = " + tradePair);
-        logger.info("liveSyncing = " + liveSyncing);
-        logger.info("secondsPerCandle = " + secondsPerCandle);
-        logger.info("containerWidth = " + containerWidth);
-        logger.info("containerHeight = " + containerHeight);
         this.exchange = exchange;
         this.tradePair = tradePair;
         this.secondsPerCandle = secondsPerCandle;

@@ -46,7 +46,6 @@ public class CandleStickChartExample extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Inside CandleStickChartExample.start");
         Platform.setImplicitExit(false);
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> logger.error("[" + thread + "]: ", exception));
         GlyphFonts.loadFonts();
@@ -62,6 +61,7 @@ public class CandleStickChartExample extends Application {
         Scene scene = new Scene(new AnchorPane(candleStickChartContainer), 1200, 800);
         scene.getStylesheets().add(CandleStickChartExample.class.getResource("/css/chart.css").toExternalForm());
         scene.getStylesheets().add(CandleStickChartExample.class.getResource("/css/glyph.css").toExternalForm());
+        primaryStage.setTitle("CandleFX - Candlestick Charts for JavaFX");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -71,8 +71,15 @@ public class CandleStickChartExample extends Application {
             super(null); // This argument is for creating a WebSocket client for live trading data.
         }
 
+        @Override
+        public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+            return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair);
+        }
+
         /**
          * Fetches the recent trades for the given trade pair from now until {@code stopAt}.
+         * <p>
+         * This method only needs to be implemented if live syncing is on.
          *
          * @param tradePair
          * @param stopAt
@@ -147,12 +154,6 @@ public class CandleStickChartExample extends Application {
 
             return futureResult;
         }
-
-        @Override
-        public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-            logger.info("getCandleDataSupplier: secondsPerCandle = " + secondsPerCandle + ", tradePair = " + tradePair);
-            return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair);
-        }
     }
 
     public static class CoinbaseCandleDataSupplier extends CandleDataSupplier {
@@ -173,7 +174,6 @@ public class CandleStickChartExample extends Application {
 
         @Override
         public Future<List<CandleData>> get() {
-            logger.info("secondsPerCandle: " + secondsPerCandle);
             if (endTime.get() == -1) {
                 endTime.set((int) (Instant.now().toEpochMilli() / 1000L));
             }
@@ -229,7 +229,6 @@ public class CandleStickChartExample extends Application {
                                         candle.get(5).asDouble()   // volume
                                 ));
                             }
-                            logger.info("Fetched \"" + candleData.size() + "\" candles from Coinbase.");
                             candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                             return candleData;
                         } else {
