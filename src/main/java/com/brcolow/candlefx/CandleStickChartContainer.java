@@ -26,7 +26,6 @@ public class CandleStickChartContainer extends Region {
     private final Exchange exchange;
     private final TradePair tradePair;
     private final SimpleIntegerProperty secondsPerCandle;
-    private final CandleDataSupplier candleDataSupplier;
     private CandleStickChart candleStickChart;
     private static final Logger logger = LoggerFactory.getLogger(CandleStickChartContainer.class);
 
@@ -38,7 +37,7 @@ public class CandleStickChartContainer extends Region {
         secondsPerCandle = new SimpleIntegerProperty(3600);
         getStyleClass().add("candle-chart-container");
         setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
+        CandleDataSupplier candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
         toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(),
                 candleDataSupplier.getSupportedGranularities());
         VBox toolbarContainer = new VBox(toolbar);
@@ -78,16 +77,8 @@ public class CandleStickChartContainer extends Region {
 
     private void createNewChart(int secondsPerCandle) {
         /*
-        CandleDataSupplier candleDataSupplier = null;
-        try
-        {
-            candleDataSupplier = new ReverseRawTradeDataProcessor(Paths.get("C:\\bitstampUSD.csv"),
+            CandleDataSupplier candleDataSupplier = new ReverseRawTradeDataProcessor(Paths.get("C:\\bitstampUSD.csv"),
                     secondsPerCandle.get(), TradePair.of(amountUnit, priceUnit));
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
         */
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
                 tradePair, false, secondsPerCandle, widthProperty(), heightProperty());

@@ -5,6 +5,7 @@ import static com.brcolow.candlefx.FXUtils.computeTextDimensions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
@@ -26,7 +27,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
@@ -56,7 +56,7 @@ public class CandleStickChartToolbar extends Region {
     private final Separator functionOptionsSeparator;
 
     CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
-                            List<Integer> granularities) {
+                            Set<Integer> granularities) {
         List<Node> toolbarNodes = new ArrayList<>((2 * granularities.size()) + Tool.values().length + 1);
         boolean passedMinuteHourBoundary = false;
         boolean passedHourDayBoundary = false;
@@ -72,7 +72,7 @@ public class CandleStickChartToolbar extends Region {
                     minuteHourSeparator.setOpacity(0);
                     toolbarNodes.add(minuteHourSeparator);
                 }
-                toolbarNodes.add(0, new ToolbarButton((granularity / 3600) + "h", granularity));
+                toolbarNodes.add(new ToolbarButton((granularity / 3600) + "h", granularity));
             } else if (granularity < 604800) {
                 if (!passedHourDayBoundary) {
                     passedHourDayBoundary = true;
@@ -80,7 +80,7 @@ public class CandleStickChartToolbar extends Region {
                     hourDaySeparator.setOpacity(0);
                     toolbarNodes.add(hourDaySeparator);
                 }
-                toolbarNodes.add(0, new ToolbarButton((granularity / 86400) + "d", granularity));
+                toolbarNodes.add(new ToolbarButton((granularity / 86400) + "d", granularity));
             } else if (granularity < 2592000) {
                 if (!passedDayWeekBoundary) {
                     passedDayWeekBoundary = true;
@@ -88,7 +88,7 @@ public class CandleStickChartToolbar extends Region {
                     dayWeekSeparator.setOpacity(0);
                     toolbarNodes.add(dayWeekSeparator);
                 }
-                toolbarNodes.add(0, new ToolbarButton((granularity / 604800) + "w", granularity));
+                toolbarNodes.add(new ToolbarButton((granularity / 604800) + "w", granularity));
             } else {
                 if (!passedWeekMonthBoundary) {
                     passedWeekMonthBoundary = true;
@@ -96,7 +96,7 @@ public class CandleStickChartToolbar extends Region {
                     weekMonthSeparator.setOpacity(0);
                     toolbarNodes.add(weekMonthSeparator);
                 }
-                toolbarNodes.add(0, new ToolbarButton((granularity / 2592000) + "mo", granularity));
+                toolbarNodes.add(new ToolbarButton((granularity / 2592000) + "mo", granularity));
             }
         }
 

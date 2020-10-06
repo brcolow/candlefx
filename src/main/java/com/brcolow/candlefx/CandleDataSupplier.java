@@ -1,6 +1,7 @@
 package com.brcolow.candlefx;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
@@ -15,7 +16,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
     protected final TradePair tradePair;
     protected final IntegerProperty endTime;
 
-    private static final List<Integer> GRANULARITIES = List.of(60, 180, 300, 900, 1800, 3600, 7200, 14400,
+    private static final Set<Integer> GRANULARITIES = Set.of(60, 180, 300, 900, 1800, 3600, 7200, 14400,
             21600, 43200, 86400);
 
     public CandleDataSupplier(int numCandles, int secondsPerCandle, TradePair tradePair, IntegerProperty endTime) {
@@ -25,7 +26,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
         this.endTime = endTime;
     }
 
-    public List<Integer> getSupportedGranularities() {
+    public Set<Integer> getSupportedGranularities() {
         return GRANULARITIES;
     }
 

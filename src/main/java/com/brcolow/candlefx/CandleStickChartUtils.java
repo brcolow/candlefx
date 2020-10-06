@@ -204,9 +204,9 @@ public final class CandleStickChartUtils {
         final int secondsPerYear = 12 * secondsPerMonth;
 
         if (rangeInSeconds > secondsPerYear) {
-            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMM YYYY"));
+            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMM yy"));
         } else if (rangeInSeconds > 6 * secondsPerMonth) {
-            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMMM ''YY"));
+            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMMM ''yy"));
         } else if (rangeInSeconds > 6 * secondsPerWeek) {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("'Week' w"));
         } else if (rangeInSeconds > 10 * secondsPerDay) {

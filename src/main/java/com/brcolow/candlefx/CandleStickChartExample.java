@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -168,8 +170,8 @@ public class CandleStickChartExample extends Application {
         }
 
         @Override
-        public List<Integer> getSupportedGranularities() {
-            return List.of(60, 300, 900, 3600, 21600, 86400);
+        public Set<Integer> getSupportedGranularities() {
+            return new TreeSet<>(Set.of(60, 300, 900, 3600, 21600, 86400));
         }
 
         @Override

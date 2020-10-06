@@ -1,22 +1,19 @@
 package com.brcolow.candlefx;
 
-import java.io.IOException;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-
-import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.Alert;
-
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.drafts.Draft;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * An abstract {@code WebSocketClient} implementation that encapsulates common functionality
@@ -67,13 +64,11 @@ public abstract class ExchangeWebSocketClient extends WebSocketClient {
     @Override
     public void onError(Exception exception) {
         logger.error("WebSocketClient error (" + getURI().getHost() + "): ", exception);
-        //Alert alert = FXUtils.newErrorDialog("Live Sync Error", exception);
-        //Platform.runLater(alert::show);
+        // FIXME: throw!
     }
 
     @Override
     public boolean connectBlocking() throws InterruptedException {
-        logger.warn("Attempting to connect to websocket: " + getURI());
         if (Platform.isFxApplicationThread()) {
             logger.error("attempted to connect to an ExchangeWebSocketClient on the JavaFX thread!");
             throw new RuntimeException("attempted to connect to an ExchangeWebSocketClient on the JavaFX thread!");

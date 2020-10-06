@@ -52,8 +52,8 @@ public class Coinbase extends Exchange {
         }
 
         @Override
-        public List<Integer> getSupportedGranularities() {
-            return List.of(60, 300, 900, 3600, 21600, 86400);
+        public Set<Integer> getSupportedGranularities() {
+            return Set.of(60, 300, 900, 3600, 21600, 86400);
         }
 
         @Override
@@ -159,7 +159,6 @@ The `FastMoney` implementation is from [mikvor/money-conversion]([https://github
 
 ## TODO
 
-* Sort granularities in CandleStickChartToolbar.
 * Remove the now unused FontAwesome glyph code stuff.
 * Flesh out a full README example.
 * Move CandleStickChartExample to a `com.brcolow.candlefxexample` module (or something like that) and get rid of
