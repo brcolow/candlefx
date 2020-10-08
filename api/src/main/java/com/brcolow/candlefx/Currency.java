@@ -30,7 +30,6 @@ public abstract class Currency {
     private static final Logger logger = LoggerFactory.getLogger(Currency.class);
 
     static {
-        logger.info("Inside Currency static initializer");
         // FIXME: Replace with ServiceLoaders
         CryptoCurrencyDataProvider cryptoCurrencyDataProvider = new CryptoCurrencyDataProvider();
         cryptoCurrencyDataProvider.registerCurrencies();
@@ -148,10 +147,9 @@ public abstract class Currency {
     }
 
     public static List<FiatCurrency> getFiatCurrencies() {
-        return Collections.unmodifiableList(CURRENCIES.values().stream()
+        return CURRENCIES.values().stream()
                 .filter(currency -> currency.getCurrencyType() == CurrencyType.FIAT)
-                .map(currency -> (FiatCurrency) currency)
-                .collect(Collectors.toList()));
+                .map(currency -> (FiatCurrency) currency).collect(Collectors.toUnmodifiableList());
     }
 
     public static Currency lookupBySymbol(String symbol) {
@@ -209,7 +207,7 @@ public abstract class Currency {
             return false;
         }
 
-        if (!(object instanceof CryptoCurrency || object instanceof FiatCurrency || object instanceof Currency)) {
+        if (!(object instanceof Currency)) {
             return false;
         }
 

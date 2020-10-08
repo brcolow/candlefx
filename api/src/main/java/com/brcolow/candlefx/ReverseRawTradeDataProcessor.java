@@ -16,16 +16,12 @@ import java.util.stream.Collectors;
 
 import javafx.beans.property.SimpleIntegerProperty;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Michael Ennen
  */
 public class ReverseRawTradeDataProcessor extends CandleDataSupplier {
     private final ReversedLinesFileReader fileReader;
     private int start;
-    private static final Logger logger = LoggerFactory.getLogger(ReverseRawTradeDataProcessor.class);
 
     public ReverseRawTradeDataProcessor(Path rawTradeData, int secondsPerCandle, TradePair tradePair)
             throws IOException {

@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Michael Ennen
  */
-public class Glyph extends Text implements Duplicatable<Glyph> {
+public class Glyph extends Text {
     private final GlyphFont font;
     private final NamedGlyph glyph;
     private final int size;
@@ -79,11 +79,6 @@ public class Glyph extends Text implements Duplicatable<Glyph> {
 
     private void setTextToUnicodePoint(char codePoint) {
         setText(String.valueOf(codePoint));
-    }
-
-    @Override
-    public Glyph duplicate() {
-        return new Glyph(font, glyph, size, color);
     }
 
     public static Glyph fontAwesome(String glyph, int size, Color color) {

@@ -1,6 +1,7 @@
 package com.brcolow.candlefx;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
@@ -38,5 +39,25 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
                 ", tradePair=" + tradePair +
                 ", endTime=" + endTime +
                 ']';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CandleDataSupplier that = (CandleDataSupplier) o;
+        return numCandles == that.numCandles &&
+                secondsPerCandle == that.secondsPerCandle &&
+                Objects.equals(tradePair, that.tradePair) &&
+                Objects.equals(endTime, that.endTime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numCandles, secondsPerCandle, tradePair, endTime);
     }
 }

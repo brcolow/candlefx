@@ -1,8 +1,5 @@
 package com.brcolow.candlefx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -15,13 +12,11 @@ import java.util.Locale;
  * @see <a href="http://en.wikipedia.org/wiki/ISO_4217">ISO-4217 Currency Codes</a>
  */
 public class FiatCurrencyDataProvider extends CurrencyDataProvider {
-    private static final Logger logger = LoggerFactory.getLogger(FiatCurrencyDataProvider.class);
 
     public FiatCurrencyDataProvider() {}
 
     @Override
     protected void registerCurrencies() {
-        logger.info("Inside FiatCurrencyDataProvider.registerCurrencies()");
         Currency.registerCurrencies(List.of(
                 new FiatCurrency("Australian dollar", "Australian dollar", "AUD", 2, "$", new Locale("en", "AU"),
                         "Reserve Bank of Australia", 36),

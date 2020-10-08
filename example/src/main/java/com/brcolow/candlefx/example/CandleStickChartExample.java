@@ -184,6 +184,7 @@ public class CandleStickChartExample extends Application {
 
         @Override
         public Set<Integer> getSupportedGranularities() {
+            // https://docs.pro.coinbase.com/#get-historic-rates
             return new TreeSet<>(Set.of(60, 300, 900, 3600, 21600, 86400));
         }
 

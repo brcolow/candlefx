@@ -1,8 +1,5 @@
 package com.brcolow.candlefx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,13 +10,11 @@ import java.util.Map;
  * @author Michael Ennen
  */
 public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
-    private static final Logger logger = LoggerFactory.getLogger(CryptoCurrencyDataProvider.class);
 
     public CryptoCurrencyDataProvider() {}
 
     @Override
     protected void registerCurrencies() {
-        logger.info("Inside CryptoCurrencyDataProvider.registerCurrencies()");
 
         /*
         // crypto_coins.json is encoded in UTF-8 (for symbols)

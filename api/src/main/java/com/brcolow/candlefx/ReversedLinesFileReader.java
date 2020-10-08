@@ -31,8 +31,6 @@ import java.util.Objects;
 /**
  * Reads lines in a file reversely (similar to a BufferedReader, but starting at
  * the last line). Useful for e.g. searching in log files.
- *
- * @since 2.2
  */
 public class ReversedLinesFileReader implements Closeable {
 

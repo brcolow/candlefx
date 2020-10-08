@@ -27,7 +27,7 @@ public class FastMoneyFormatter implements MoneyFormatter<Money> {
             // TODO ideally this would only trigger if the fractional digits of the currency was 0
             // but that is not yet how it's working
             if (money.getCurrency().getCurrencyType() == CurrencyType.FIAT) {
-                return money.getCurrency().getSymbol() + Long.toString(money.getAmount()) + ".00";
+                return money.getCurrency().getSymbol() + money.getAmount() + ".00";
             } else {
                 return Long.toString(money.getAmount()) + ' ' + money.getCurrency().getCode();
             }

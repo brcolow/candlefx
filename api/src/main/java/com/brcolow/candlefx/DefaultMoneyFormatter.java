@@ -134,10 +134,9 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
                     } else {
                         decimalPointSeparator = String.valueOf(decimalFormatSymbols.getMonetaryDecimalSeparator());
                     }
-                    for (int i = 0; i < (fractionalDigitsCap == -1 ? defaultMoney.getCurrency().getFractionalDigits() :
-                            min(defaultMoney.getCurrency().getFractionalDigits(), fractionalDigitsCap)); i++) {
-                        numberAfterDecimalPointBuilder.append('0');
-                    }
+                    numberAfterDecimalPointBuilder.append("0".repeat(Math.max(0, (fractionalDigitsCap == -1 ?
+                            defaultMoney.getCurrency().getFractionalDigits() :
+                            min(defaultMoney.getCurrency().getFractionalDigits(), fractionalDigitsCap)))));
                 } else {
                     if (fractionalDigitsCap == 0) {
                         decimalPointSeparator = "";
@@ -151,11 +150,9 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
                         if (wholeNumberFractionalDigitAmount == WholeNumberFractionalDigitAmount.MIN) {
                             numberAfterDecimalPointBuilder.append('0');
                         } else if (wholeNumberFractionalDigitAmount == WholeNumberFractionalDigitAmount.MAX) {
-                            for (int i = 0; i < (fractionalDigitsCap == -1 ?
+                            numberAfterDecimalPointBuilder.append("0".repeat(Math.max(0, (fractionalDigitsCap == -1 ?
                                     defaultMoney.getCurrency().getFractionalDigits() :
-                                    min(defaultMoney.getCurrency().getFractionalDigits(), fractionalDigitsCap)); i++) {
-                                numberAfterDecimalPointBuilder.append('0');
-                            }
+                                    min(defaultMoney.getCurrency().getFractionalDigits(), fractionalDigitsCap)))));
                         }
                     }
                 }
@@ -182,18 +179,14 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
                 }
 
                 if (unlimitedFractionalDigits) {
-                    for (int i = 0; i < numDigitsAfterDecimalPoint; i++) {
-                        numberAfterDecimalPointBuilder.append('0');
-                    }
+                    numberAfterDecimalPointBuilder.append("0".repeat(Math.max(0, numDigitsAfterDecimalPoint)));
                 } else {
                     int endIndex = displayAtLeastAllFractionalDigits ? defaultMoney.getCurrency().getFractionalDigits()
                             : min(numDigitsAfterDecimalPoint, defaultMoney.getCurrency().getFractionalDigits());
                     if (fractionalDigitsCap != -1) {
                         endIndex = min(fractionalDigitsCap, endIndex);
                     }
-                    for (int i = 0; i < endIndex; i++) {
-                        numberAfterDecimalPointBuilder.append('0');
-                    }
+                    numberAfterDecimalPointBuilder.append("0".repeat(Math.max(0, endIndex)));
                 }
             }
         }
@@ -270,7 +263,7 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
                     }
                 }
             } else {
-                // TODO this really shouldnt happen
+                // TODO this really shouldn't happen.
                 ((DecimalFormat) numberFormat).applyPattern(prefix + number + suffix);
             }
         }
