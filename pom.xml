@@ -4,9 +4,14 @@
 
   <groupId>com.brcolow</groupId>
   <artifactId>candlefx</artifactId>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <version>0.0.1-SNAPSHOT</version>
   <name>candlefx</name>
+
+  <modules>
+    <module>api</module>
+    <module>example</module>
+  </modules>
 
   <scm>
     <connection>scm:git:https://github.com/brcolow/candlefx.git</connection>
@@ -89,16 +94,6 @@
       <version>4.0.16-alpha</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.11.2</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>2.11.2</version>
-    </dependency>
   </dependencies>
 
   <build>
@@ -148,7 +143,6 @@
                 </requireMavenVersion>
                 <requireUpperBoundDeps/>
                 <dependencyConvergence/>
-                <reactorModuleConvergence/>
                 <banDuplicatePomDependencyVersions/>
                 <bannedDependencies>
                   <excludes>
@@ -178,14 +172,6 @@
          <version>3.0.0-M5</version>
        </plugin>
 
-       <plugin>
-         <groupId>org.openjfx</groupId>
-         <artifactId>javafx-maven-plugin</artifactId>
-         <version>0.0.4</version>
-         <configuration>
-           <mainClass>com.brcolow.candlefx/com.brcolow.candlefx.CandleStickChartExample</mainClass>
-         </configuration>
-       </plugin>
        <!--
       <plugin>
         <groupId>pl.project13.maven</groupId>

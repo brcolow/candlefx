@@ -1,5 +1,15 @@
-package com.brcolow.candlefx;
+package com.brcolow.candlefx.example;
 
+import com.brcolow.candlefx.CandleData;
+import com.brcolow.candlefx.CandleDataSupplier;
+import com.brcolow.candlefx.CandleStickChartContainer;
+import com.brcolow.candlefx.Currency;
+import com.brcolow.candlefx.DefaultMoney;
+import com.brcolow.candlefx.Exchange;
+import com.brcolow.candlefx.GlyphFonts;
+import com.brcolow.candlefx.Side;
+import com.brcolow.candlefx.Trade;
+import com.brcolow.candlefx.TradePair;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import javafx.application.Application;
@@ -38,6 +48,9 @@ import java.util.concurrent.Future;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
+/**
+ * Example of how to use the CandleFX API to create a candle stick chart for the BTC/USD tradepair on Coinbase.
+ */
 public class CandleStickChartExample extends Application {
     private static final TradePair BTC_USD = TradePair.of(Currency.ofCrypto("BTC"), Currency.ofFiat("USD"));
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()

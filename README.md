@@ -13,17 +13,19 @@ the magic of search engines (including Github's own)).
 
 ## Getting Started
 
-CandleFX can display real-time candle-stick charts for trading commodities but let's start, for simplicties sake, with
-a candle-stick chart that only displays historical (past) trading data.
+CandleFX can display real-time candle-stick charts for trading commodities but let's start, for simplicity's sake, with
+a candle-stick chart that only displays historical (past) trading data. The full source code for these examples can
+be found in [CandleStickChartExample](./example/src/main/java/com/brcolow/candlefx/example/CandleStickChartExample.java).
 
 In order to create a candle-stick chart we need the following objects:
 
 * An `exchange` instance
 * A `tradePair` on that exchange
 
-An `exchange` object represents some body that facilitates trades in commodities. For example the New York Stock Exchange
-which facilitates trading in certain stock trade pairs (such as Tesla's stock to U.S. Dollars - the TSLA/USD trade pair) or
-Coinbase exchange which facilitates trading of cryptocurrencies with other currencies (fiat or crypto) such as BTC/USD.
+An `exchange` object represents some trading facilitator of commodities. For example the New York Stock Exchange
+which facilitates trading in certain stock trade pairs (such as Tesla's stock to U.S. Dollars - the TSLA/USD trade pair)
+or Coinbase exchange which facilitates trading of cryptocurrencies with other currencies (fiat or crypto) such as 
+the BTC/USD trade pair.
 
 `Exchange` is an abstract class that should be implemented for your own needs. In these examples we will use Coinbase
 Exchange. In order for the candle-stick chart to retrieve historical candle data you must, at a minimum, implement the
@@ -161,8 +163,6 @@ The `FastMoney` implementation is from [mikvor/money-conversion]([https://github
 
 * Remove the now unused FontAwesome glyph code stuff.
 * Flesh out a full README example.
-* Move CandleStickChartExample to a `com.brcolow.candlefxexample` module (or something like that) and get rid of
-jackson dependency from main module.
 * Add examples from more cryptocurrency exchanges.
 * Create subpackages (monetary, controls, etc.) and have better separation of private/public API with help of JPMS.
 * Create websocket interface instead of having a strong tie to one websocket library so consumers can plug in their

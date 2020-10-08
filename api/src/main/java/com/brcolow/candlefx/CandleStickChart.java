@@ -272,7 +272,6 @@ public class CandleStickChart extends Region {
                 graphicsContext = canvas.getGraphicsContext2D();
                 layoutChart();
                 initializeEventHandlers();
-                logger.info("Calling candleDataPager.getCandleDataSupplier()");
                 CompletableFuture.supplyAsync(candleDataPager.getCandleDataSupplier()).thenAccept(
                         candleDataPager.getCandleDataPreProcessor());
                 gotFirstSize.removeListener(this);
@@ -399,11 +398,6 @@ public class CandleStickChart extends Region {
         // the chart work correctly. I don't fully understand the logic behind it, so I am leaving a note for
         // my future self.
         logger.info("currZoomLevel = " + currZoomLevel);
-        logger.info("xAxis = " + xAxis);
-        logger.info("currZoomLevel.getExtremaForCandleRangeMap(): " + currZoomLevel.getExtremaForCandleRangeMap());
-        logger.info("Attempting to get key: " + ((int) xAxis.getLowerBound() - secondsPerCandle));
-        logger.info("Map at key = " + currZoomLevel.getExtremaForCandleRangeMap().get(
-                (int) xAxis.getLowerBound() - secondsPerCandle));
         Pair<Extrema<Integer>, Extrema<Integer>> extremaForRange = currZoomLevel.getExtremaForCandleRangeMap().get(
                 (int) xAxis.getLowerBound() - secondsPerCandle);
         // FIXME: Figure out why this is null
@@ -751,8 +745,6 @@ public class CandleStickChart extends Region {
                 graphicsContext.fillText(MARKER_FORMAT.format(lowestCandleValue) + " →", xPos, lowMarkYPos);
             }
         }
-
-        logger.info("Finished drawChartContents");
     }
 
     private double cartesianToScreenCoords(double yCoordinate) {
@@ -1039,9 +1031,7 @@ public class CandleStickChart extends Region {
             }
 
             if (data.isEmpty()) {
-                logger.info("Data is empty");
                 if (liveSyncing) {
-                    logger.info("We are live syncing");
                     // We obtained the first page of candle data which does *not* include the current in-progress
                     // candle. Since we are live-syncing we need to fetch the data for what has occurred so far in
                     // the current candle.
@@ -1152,7 +1142,6 @@ public class CandleStickChart extends Region {
     }
 
     private void setInitialState(List<CandleData> candleData) {
-        logger.info("Inside setInitialState, candle data = " + candleData);
         if (liveSyncing) {
             candleData.add(candleData.size(), inProgressCandle.snapshot());
         }
@@ -1173,7 +1162,6 @@ public class CandleStickChart extends Region {
                 candleData.size()));
         setYAndExtraAxisBounds();
         data.putAll(candleData.stream().collect(Collectors.toMap(CandleData::getOpenTime, Function.identity())));
-        logger.info("Calling drawChartContents");
         drawChartContents(false);
         progressIndicator.setVisible(false);
         updateInProgressCandleTask.setReady(true);
