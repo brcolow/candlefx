@@ -151,13 +151,15 @@ To be continued...
 
 ## Attribution
 
-We use the FontAwesome icon set for the chart toolbar.
+CandleFX would not be possible without the following open source projects:
 
-We use the PopOver and ToggleSwitch controls from ControlsFX (with minor modifications).
+The [FontAwesome](https://fontawesome.com/) icon set for the chart toolbar.
 
-The `StableTicksAxis` implementation is from [JFXUtils](https://github.com/gillius/jfxutils).
+The PopOver and ToggleSwitch controls from [ControlsFX](https://github.com/controlsfx/controlsfx).
 
-The `FastMoney` implementation is from [mikvor/money-conversion]([https://github.com/mikvor/money-conversion]).
+The `StableTicksAxis` implementation from [JFXUtils](https://github.com/gillius/jfxutils).
+
+The `FastMoney` implementation from [mikvor/money-conversion](https://github.com/mikvor/money-conversion).
 
 ## TODO
 
