@@ -25,21 +25,6 @@ public abstract class Exchange {
         return webSocketClient;
     }
 
-    /**
-     * Fetches most recent trades data (limited by {@code limit}) for the given trade
-     * pair and updates {@code recentTrades} if {@code updateRecentTrades } is {@literal true}.
-     *
-     * @param tradePair the trade pair to fetch the recent trades data for
-     * @param limit the numeric limit on how many recent trades to fetch
-     * @param updateRecentTrades if true, this exchange's {@code recentTrades} will be
-     * updated with any new trades data - otherwise it is not updated
-     * @return a CompletableFuture that contains a List of the {@code limit} most recent trades
-     */
-    public CompletableFuture<List<Trade>> fetchRecentTradesData(TradePair tradePair, int limit,
-                                                                boolean updateRecentTrades) {
-        throw new RuntimeException("not implemented");
-    }
-
     public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
 
     public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);

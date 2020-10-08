@@ -8,8 +8,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A {@link javafx.scene.layout.Region} that contains a {@code CandleStickChart} and a {@code CandleStickChartToolbar}.
@@ -27,7 +25,6 @@ public class CandleStickChartContainer extends Region {
     private final TradePair tradePair;
     private final SimpleIntegerProperty secondsPerCandle;
     private CandleStickChart candleStickChart;
-    private static final Logger logger = LoggerFactory.getLogger(CandleStickChartContainer.class);
 
     public CandleStickChartContainer(Exchange exchange, TradePair tradePair) {
         Objects.requireNonNull(exchange, "exchange must not be null");
@@ -62,8 +59,6 @@ public class CandleStickChartContainer extends Region {
         toolbar.registerEventHandlers(candleStickChart, secondsPerCandle);
 
         secondsPerCandle.addListener((observableDurationValue, oldDurationValue, newDurationValue) -> {
-            logger.info("Inside secondsPerCandle listener: oldDurationValue = " + oldDurationValue +
-                    ", newDurationValue = " + newDurationValue);
             if (!oldDurationValue.equals(newDurationValue)) {
                 createNewChart(newDurationValue.intValue());
                 toolbar.setChartOptions(candleStickChart.getChartOptions());
@@ -76,9 +71,12 @@ public class CandleStickChartContainer extends Region {
     }
 
     private void createNewChart(int secondsPerCandle) {
+        if (secondsPerCandle <= 0) {
+            throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
+        }
         /*
-            CandleDataSupplier candleDataSupplier = new ReverseRawTradeDataProcessor(Paths.get("C:\\bitstampUSD.csv"),
-                    secondsPerCandle.get(), TradePair.of(amountUnit, priceUnit));
+        CandleDataSupplier candleDataSupplier = new ReverseRawTradeDataProcessor(Paths.get("C:\\bitstampUSD.csv"),
+                secondsPerCandle.get(), TradePair.of(amountUnit, priceUnit));
         */
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
                 tradePair, false, secondsPerCandle, widthProperty(), heightProperty());

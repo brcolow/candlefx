@@ -5,6 +5,7 @@ import static com.brcolow.candlefx.FXUtils.computeTextDimensions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javafx.beans.property.BooleanProperty;
@@ -57,6 +58,10 @@ public class CandleStickChartToolbar extends Region {
 
     CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
                             Set<Integer> granularities) {
+        Objects.requireNonNull(containerWidth);
+        Objects.requireNonNull(containerHeight);
+        Objects.requireNonNull(granularities);
+
         List<Node> toolbarNodes = new ArrayList<>((2 * granularities.size()) + Tool.values().length + 1);
         boolean passedMinuteHourBoundary = false;
         boolean passedHourDayBoundary = false;
@@ -155,6 +160,7 @@ public class CandleStickChartToolbar extends Region {
     }
 
     void setActiveToolbarButton(IntegerProperty secondsPerCandle) {
+        Objects.requireNonNull(secondsPerCandle);
         for (Node tool : toolbar.getChildren()) {
             if (tool instanceof ToolbarButton) {
                 ToolbarButton toolbarButton = (ToolbarButton) tool;
@@ -164,6 +170,8 @@ public class CandleStickChartToolbar extends Region {
     }
 
     void registerEventHandlers(CandleStickChart candleStickChart, IntegerProperty secondsPerCandle) {
+        Objects.requireNonNull(candleStickChart);
+        Objects.requireNonNull(secondsPerCandle);
         for (Node tool : toolbar.getChildren()) {
             if (tool instanceof ToolbarButton) {
                 ToolbarButton toolbarButton = (ToolbarButton) tool;

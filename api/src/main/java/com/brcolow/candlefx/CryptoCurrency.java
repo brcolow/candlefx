@@ -12,8 +12,14 @@ public class CryptoCurrency extends Currency {
     private final Algorithm algorithm;
     private final URI homeUrl;
     private final URI walletUrl;
-    private final Instant genesisTime; // Time that the genesis block was created
-    private final int difficultyRetarget; // After how many blocks is difficulty recalculated
+    /**
+     * Time that the genesis block was created.
+     */
+    private final Instant genesisTime;
+    /**
+     * After how many blocks is difficulty recalculated.
+     */
+    private final int difficultyRetarget;
     private final String maxCoinsIssued;
 
     protected CryptoCurrency() {

@@ -1,6 +1,7 @@
 package com.brcolow.candlefx;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -19,6 +20,8 @@ public class CandleDataPager {
     private static final Logger logger = LoggerFactory.getLogger(CandleDataPager.class);
 
     public CandleDataPager(CandleStickChart candleStickChart, CandleDataSupplier candleDataSupplier) {
+        Objects.requireNonNull(candleStickChart);
+        Objects.requireNonNull(candleDataSupplier);
         this.candleDataSupplier = candleDataSupplier;
         candleDataPreProcessor = new CandleDataPreProcessor(candleStickChart);
     }

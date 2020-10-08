@@ -1,5 +1,6 @@
 package com.brcolow.candlefx;
 
+import java.util.List;
 import java.util.Objects;
 
 import javafx.beans.property.BooleanProperty;
@@ -17,16 +18,21 @@ import javafx.scene.layout.VBox;
  */
 public class CandleStickChartOptions {
     private final VBox optionsPane;
-    private final GridPane optionsGrid;
-    private int numOptions;
 
     public CandleStickChartOptions() {
         optionsPane = new VBox();
-        optionsGrid = new GridPane();
-        numOptions = 0;
+        GridPane optionsGrid = new GridPane();
+        int numOptions = 0;
         optionsGrid.setVgap(10);
         optionsGrid.setHgap(20);
-        addOptions(verticalGridLinesVisible, horizontalGridLinesVisible, showVolume, alignOpenClose);
+        for (BooleanProperty optionProperty : List.of(
+                verticalGridLinesVisible, horizontalGridLinesVisible, showVolume, alignOpenClose)) {
+            ChartOption newOption = new ChartOption(optionProperty);
+            int optionIndex = numOptions++;
+            optionsGrid.add(newOption.optionLabel, 0, optionIndex);
+            optionsGrid.add(newOption.optionSwitch, 1, optionIndex);
+            optionProperty.bind(newOption.optionSwitch.selectedProperty());
+        }
         optionsPane.getChildren().setAll(optionsGrid);
         optionsPane.setPadding(new Insets(20, 5, 20, 5));
     }
@@ -35,23 +41,8 @@ public class CandleStickChartOptions {
         return optionsPane;
     }
 
-    private void addOptions(BooleanProperty... optionProperties) {
-        for (BooleanProperty optionProperty : optionProperties) {
-            addOption(optionProperty);
-        }
-    }
-
-    private void addOption(BooleanProperty optionProperty) {
-        Objects.requireNonNull(optionProperty, "optionProperty must not be null");
-        ChartOption newOption = new ChartOption(optionProperty);
-        int optionIndex = numOptions++;
-        optionsGrid.add(newOption.optionLabel, 0, optionIndex);
-        optionsGrid.add(newOption.optionSwitch, 1, optionIndex);
-        optionProperty.bind(newOption.optionSwitch.selectedProperty());
-    }
-
     /**
-     * True if vertical grid lines should be drawn at major tick marks along the x-axis
+     * {@literal true} if vertical grid lines should be drawn at major tick marks along the x-axis
      */
     private final ReadOnlyBooleanWrapper verticalGridLinesVisible = new ReadOnlyBooleanWrapper(false) {
         @Override
@@ -74,7 +65,7 @@ public class CandleStickChartOptions {
     }
 
     /**
-     * True if horizontal grid lines should be drawn at major tick marks along the y-axis
+     * {@literal true} if horizontal grid lines should be drawn at major tick marks along the y-axis
      */
     private final ReadOnlyBooleanWrapper horizontalGridLinesVisible = new ReadOnlyBooleanWrapper(false) {
         @Override
@@ -97,7 +88,7 @@ public class CandleStickChartOptions {
     }
 
     /**
-     * True if volume bars should be drawn along the bottom of the chart
+     * {@literal true} if volume bars should be drawn along the bottom of the chart
      */
     private final ReadOnlyBooleanWrapper showVolume = new ReadOnlyBooleanWrapper(true) {
         @Override
@@ -120,7 +111,7 @@ public class CandleStickChartOptions {
     }
 
     /**
-     * True if the close price of candle at index N should be aligned (the same as) with the open price
+     * {@literal true} if the close price of candle at index N should be aligned (the same as) with the open price
      * of the candle at index N+1.
      */
     private final ReadOnlyBooleanWrapper alignOpenClose = new ReadOnlyBooleanWrapper(false) {
@@ -148,6 +139,7 @@ public class CandleStickChartOptions {
         private final Label optionLabel;
 
         ChartOption(BooleanProperty optionProperty) {
+            Objects.requireNonNull(optionProperty);
             optionSwitch = new ToggleSwitch(optionProperty.get());
             optionLabel = new Label(optionProperty.getName() + ':');
         }

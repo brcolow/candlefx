@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
@@ -126,7 +127,6 @@ public class CandleStickChart extends Region {
     private final int secondsPerCandle;
     private Canvas canvas;
     private GraphicsContext graphicsContext;
-    private ZoomLevel currZoomLevel;
     private int candleWidth = 10;
     private double mousePrevX = -1;
     private double mousePrevY = -1;
@@ -134,6 +134,7 @@ public class CandleStickChart extends Region {
     private double chartWidth = 900;
     private double chartHeight = 700;
     private int inProgressCandleLastDraw = -1;
+    private volatile ZoomLevel currZoomLevel;
     private volatile boolean paging;
 
     private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.00");
@@ -157,6 +158,11 @@ public class CandleStickChart extends Region {
     CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, TradePair tradePair,
                      boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
                      ObservableNumberValue containerHeight) {
+        Objects.requireNonNull(exchange);
+        Objects.requireNonNull(candleDataSupplier);
+        Objects.requireNonNull(tradePair);
+        Objects.requireNonNull(containerWidth);
+        Objects.requireNonNull(containerHeight);
         if (!Platform.isFxApplicationThread()) {
             throw new IllegalArgumentException("CandleStickChart must be constructed on the JavaFX Application " +
                     "Thread but was called from \"" + Thread.currentThread() + "\".");
@@ -214,7 +220,6 @@ public class CandleStickChart extends Region {
         containerHeight.addListener(sizeListener);
 
         if (liveSyncing) {
-            logger.info("we are live syncing");
             inProgressCandle = new InProgressCandle();
             updateInProgressCandleTask = new UpdateInProgressCandleTask();
             updateInProgressCandleExecutor = Executors.newSingleThreadScheduledExecutor(
@@ -241,7 +246,6 @@ public class CandleStickChart extends Region {
                 }
             });
         } else {
-            logger.info("we are not live syncing");
             inProgressCandle = null;
             updateInProgressCandleTask = null;
             updateInProgressCandleExecutor = null;
@@ -317,7 +321,6 @@ public class CandleStickChart extends Region {
     }
 
     private void moveAlongX(int deltaX, boolean skipDraw) {
-        // TODO(mike): assert deltaX = 1 or -1?
         if (deltaX != 1 && deltaX != -1) {
             throw new RuntimeException("deltaX must be 1 or -1 but was: " + deltaX);
         }
@@ -377,6 +380,8 @@ public class CandleStickChart extends Region {
         } else if (deltaX == -1) {
             xAxis.setUpperBound(xAxis.getUpperBound() - secondsPerCandle);
             xAxis.setLowerBound(xAxis.getLowerBound() - secondsPerCandle);
+        } else {
+            throw new IllegalArgumentException("deltaX must be 1 or -1 but was: " + deltaX);
         }
     }
 
@@ -384,7 +389,6 @@ public class CandleStickChart extends Region {
      * Sets the y-axis and extra axis bounds using only the x-axis lower bound.
      */
     private void setYAndExtraAxisBounds() {
-        logger.info("Inside setYAndExtraAxisBounds");
         logger.info("xAxis lower bound: " + (int) xAxis.getLowerBound());
         final double idealBufferSpaceMultiplier = 0.35;
         if (!currZoomLevel.getExtremaForCandleRangeMap().containsKey((int) xAxis.getLowerBound())) {
@@ -481,7 +485,6 @@ public class CandleStickChart extends Region {
      * bounds at the time this method is called.
      */
     private void drawChartContents(boolean clearCanvas) {
-        logger.info("Inside drawChartContents: clearCanvas = " + clearCanvas);
         // TODO should this expression start with (xAxis.getUpperBound() - secondsPerCandle)?
         // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
         int numCandlesToSkip = Math.max((((int) xAxis.getUpperBound()) - data.lastEntry().getValue().getOpenTime()) /
@@ -874,8 +877,8 @@ public class CandleStickChart extends Region {
 
         @Override
         public void resize() {
-            chartWidth = Math.max(300, (Math.floor(containerWidth.getValue().doubleValue() / candleWidth) *
-                    candleWidth) - 60 + (candleWidth / 2));
+            chartWidth = Math.max(300, Math.floor(containerWidth.getValue().doubleValue() / candleWidth) *
+                    candleWidth - 60 + (candleWidth / 2));
             chartHeight = Math.max(300, containerHeight.getValue().doubleValue());
             canvas.setWidth(chartWidth - 100);
             canvas.setHeight(chartHeight - 100);
@@ -898,9 +901,9 @@ public class CandleStickChart extends Region {
                     putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(),
                             candleData.subList(candleData.size() - (int) Math.floor(
                                     currZoomLevel.getNumVisibleCandles()), candleData.size()));
-                    xAxis.setLowerBound(newLowerBoundX);
-                    setYAndExtraAxisBounds();
                     Platform.runLater(() -> {
+                        xAxis.setLowerBound(newLowerBoundX);
+                        setYAndExtraAxisBounds();
                         layoutChart();
                         drawChartContents(true);
                         progressIndicator.setVisible(false);
@@ -938,6 +941,9 @@ public class CandleStickChart extends Region {
 
         @Override
         public void run() {
+            if (inProgressCandle == null) {
+                throw new RuntimeException("inProgressCandle was null in live syncing mode.");
+            }
             if (!ready) {
                 return;
             }
@@ -1006,10 +1012,6 @@ public class CandleStickChart extends Region {
         public void setReady(boolean ready) {
             this.ready = ready;
         }
-
-        public boolean isReady() {
-            return ready;
-        }
     }
 
     private class CandlePageConsumer implements Consumer<List<CandleData>> {
@@ -1032,6 +1034,9 @@ public class CandleStickChart extends Region {
 
             if (data.isEmpty()) {
                 if (liveSyncing) {
+                    if (inProgressCandle == null) {
+                        throw new RuntimeException("inProgressCandle was null in live syncing mode.");
+                    }
                     // We obtained the first page of candle data which does *not* include the current in-progress
                     // candle. Since we are live-syncing we need to fetch the data for what has occurred so far in
                     // the current candle.
@@ -1092,10 +1097,6 @@ public class CandleStickChart extends Region {
                                             inProgressCandle.setLastPrice(trades.get(trades.size() - 1).getPrice()
                                                     .toDouble());
                                         }
-
-                                        if (Platform.isFxApplicationThread()) {
-                                            logger.error("USING Platform.runLater UNECESSARILY!");
-                                        }
                                         Platform.runLater(() -> setInitialState(candleData));
                                     } else {
                                         logger.error("error fetching recent trades until: " +
@@ -1108,9 +1109,6 @@ public class CandleStickChart extends Region {
                                 inProgressCandle.setVolumeSoFar(0);
                                 inProgressCandle.setCurrentTill((int) (secondsIntoCurrentCandle +
                                         (candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle)));
-                                if (Platform.isFxApplicationThread()) {
-                                    logger.error("USING Platform.runLater UNECESSARILY!");
-                                }
                                 Platform.runLater(() -> setInitialState(candleData));
                             }
                         } else {
@@ -1121,7 +1119,6 @@ public class CandleStickChart extends Region {
                     setInitialState(candleData);
                 }
             } else {
-                logger.info("we are not live syncing");
                 int slidingWindowSize = (int) currZoomLevel.getNumVisibleCandles();
 
                 // In order to compute the y-axis extrema for the new data in the page, we have to include the
@@ -1186,7 +1183,6 @@ public class CandleStickChart extends Region {
             }
 
             double dx = event.getScreenX() - mousePrevX;
-            double dy = event.getScreenY() - mousePrevY;
 
             scrollDeltaXSum += dx;
 

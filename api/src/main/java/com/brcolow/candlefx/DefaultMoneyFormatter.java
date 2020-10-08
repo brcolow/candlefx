@@ -70,17 +70,6 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
 
     }
 
-    public static DefaultMoneyFormatter formatterForType(CurrencyType currencyType) {
-        switch (currencyType) {
-            case FIAT:
-                return DEFAULT_FIAT_FORMATTER;
-            case CRYPTO:
-                return DEFAULT_CRYPTO_FORMATTER;
-            default:
-                return DEFAULT_FIAT_FORMATTER;
-        }
-    }
-
     public String format(Money money) {
         return format((DefaultMoney) money);
     }
@@ -120,9 +109,7 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
             numDigitsBeforeDecimalPoint = 1;
         }
 
-        for (int i = 0; i < numDigitsBeforeDecimalPoint; i++) {
-            numberBeforeDecimalPointBuilder.append(0);
-        }
+        numberBeforeDecimalPointBuilder.append("0".repeat(Math.max(0, numDigitsBeforeDecimalPoint)));
 
         if (defaultMoney.getAmount().remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) == 0 &&
                 !displayAtLeastAllFractionalDigits) {
@@ -203,16 +190,9 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
                 // if we ever care enough we will expand this switch to handle these cases
                 final int groupAmount;
                 switch (locale.getISO3Language()) {
-                    case "asm":
-                        // Assamese
-                        groupAmount = 2;
-                        break;
-                    case "ben":
-                        // Bengali
-                        groupAmount = 2;
-                        break;
-                    case "mar":
-                        // Marathi
+                    case "asm": // Assamese
+                    case "ben": // Bengali
+                    case "mar": // Marathi
                         groupAmount = 2;
                         break;
                     default:
@@ -272,10 +252,12 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
     }
 
     private static int integerDigits(BigDecimal n) {
+        Objects.requireNonNull(n);
         return n.signum() == 0 ? 1 : n.precision() - n.scale();
     }
 
     private static String addDigitGroupingSeparator(String number, char groupingSeparator, int groupAmount) {
+        Objects.requireNonNull(number);
         StringBuilder groupSeparatedStringBuilder = new StringBuilder();
         int digitCount = 0;
         for (int i = number.length() - 1; i >= 0; i--) {

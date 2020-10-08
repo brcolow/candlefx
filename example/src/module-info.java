@@ -9,6 +9,7 @@ module com.brcolow.candlefx.example {
     requires javafx.base;
     requires javafx.graphics;
     requires javafx.controls;
+    requires Java.WebSocket;
 
     exports com.brcolow.candlefx.example;
 }

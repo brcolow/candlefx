@@ -12,7 +12,10 @@ import javafx.beans.property.IntegerProperty;
  * @author Michael Ennen
  */
 public abstract class CandleDataSupplier implements Supplier<Future<List<CandleData>>> {
-    protected final int numCandles; // number of candles supplied per call to get()
+    /**
+     * The number of candles supplied per call to {@link #get()}.
+     */
+    protected final int numCandles;
     protected final int secondsPerCandle;
     protected final TradePair tradePair;
     protected final IntegerProperty endTime;
@@ -21,6 +24,14 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
             21600, 43200, 86400);
 
     public CandleDataSupplier(int numCandles, int secondsPerCandle, TradePair tradePair, IntegerProperty endTime) {
+        Objects.requireNonNull(tradePair);
+        Objects.requireNonNull(endTime);
+        if (numCandles <= 0) {
+            throw new IllegalArgumentException("numCandles must be positive but was: " + numCandles);
+        }
+        if (secondsPerCandle <= 0) {
+            throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
+        }
         this.numCandles = numCandles;
         this.secondsPerCandle = secondsPerCandle;
         this.tradePair = tradePair;

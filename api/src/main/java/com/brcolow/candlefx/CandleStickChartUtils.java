@@ -13,6 +13,13 @@ import javafx.util.Pair;
  * @author Michael Ennen
  */
 public final class CandleStickChartUtils {
+    private static final int SECONDS_PER_MINUTE = 60;
+    private static final int SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+    private static final int SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+    private static final int SECONDS_PER_WEEK = 7 * SECONDS_PER_DAY;
+    private static final int SECONDS_PER_MONTH = 30 * SECONDS_PER_WEEK;
+    private static final int SECONDS_PER_YEAR = 12 * SECONDS_PER_MONTH;
+
     private CandleStickChartUtils() {}
 
     /**
@@ -42,8 +49,8 @@ public final class CandleStickChartUtils {
      */
     public static void putSlidingWindowExtrema(Map<Integer, Pair<Extrema<Integer>, Extrema<Integer>>> extrema,
                                                List<CandleData> candleData, int windowSize) {
-        Objects.requireNonNull(extrema, "extrema must not be null");
-        Objects.requireNonNull(candleData, "candleData must not be null");
+        Objects.requireNonNull(extrema);
+        Objects.requireNonNull(candleData);
 
         if (candleData.isEmpty()) {
             throw new IllegalArgumentException("candleData must not be empty");
@@ -196,22 +203,15 @@ public final class CandleStickChartUtils {
     public static InstantAxisFormatter getXAxisFormatterForRange(final double rangeInSeconds) {
         InstantAxisFormatter result;
 
-        final int secondsPerMinute = 60;
-        final int secondsPerHour = 60 * secondsPerMinute;
-        final int secondsPerDay = 24 * secondsPerHour;
-        final int secondsPerWeek = 7 * secondsPerDay;
-        final int secondsPerMonth = 30 * secondsPerWeek;
-        final int secondsPerYear = 12 * secondsPerMonth;
-
-        if (rangeInSeconds > secondsPerYear) {
+        if (rangeInSeconds > SECONDS_PER_YEAR) {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMM yy"));
-        } else if (rangeInSeconds > 6 * secondsPerMonth) {
+        } else if (rangeInSeconds > 6 * SECONDS_PER_MONTH) {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("MMMM ''yy"));
-        } else if (rangeInSeconds > 6 * secondsPerWeek) {
-            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("'Week' w"));
-        } else if (rangeInSeconds > 10 * secondsPerDay) {
+        } else if (rangeInSeconds > 6 * SECONDS_PER_WEEK) {
+            result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("'Week' w 'of' y"));
+        } else if (rangeInSeconds > 10 * SECONDS_PER_DAY) {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("dd MMM"));
-        } else if (rangeInSeconds > secondsPerDay) {
+        } else if (rangeInSeconds > SECONDS_PER_DAY) {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("HH:mm"));
         } else {
             result = new InstantAxisFormatter(DateTimeFormatter.ofPattern("HH:mm"));
