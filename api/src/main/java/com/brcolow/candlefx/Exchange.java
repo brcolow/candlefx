@@ -29,6 +29,9 @@ public abstract class Exchange {
 
     public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
 
+    /**
+     * This must be implemented to support live-syncing candle stick charts.
+     */
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
         throw new UnsupportedOperationException("Exchange: " + this + " does not support fetching candle data" +

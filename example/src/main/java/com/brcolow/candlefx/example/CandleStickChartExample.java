@@ -6,6 +6,7 @@ import com.brcolow.candlefx.CandleStickChartContainer;
 import com.brcolow.candlefx.Currency;
 import com.brcolow.candlefx.DefaultMoney;
 import com.brcolow.candlefx.Exchange;
+import com.brcolow.candlefx.InProgressCandleData;
 import com.brcolow.candlefx.Side;
 import com.brcolow.candlefx.Trade;
 import com.brcolow.candlefx.TradePair;
@@ -38,8 +39,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
@@ -89,14 +92,93 @@ public class CandleStickChartExample extends Application {
             return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair);
         }
 
+        public static class CoinbaseCandleDataSupplier extends CandleDataSupplier {
+            private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+                    .registerModule(new JavaTimeModule())
+                    .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
+
+            CoinbaseCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
+            }
+
+            @Override
+            public Set<Integer> getSupportedGranularities() {
+                // https://docs.pro.coinbase.com/#get-historic-rates
+                return new TreeSet<>(Set.of(60, 300, 900, 3600, 21600, 86400));
+            }
+
+            @Override
+            public Future<List<CandleData>> get() {
+                if (endTime.get() == -1) {
+                    endTime.set((int) (Instant.now().toEpochMilli() / 1000L));
+                }
+
+                String endDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                        .format(LocalDateTime.ofEpochSecond(endTime.get(), 0, ZoneOffset.UTC));
+
+                int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
+                String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                        .format(LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC));
+
+                String uriStr = "https://api.pro.coinbase.com/" +
+                        "products/" + tradePair.toString('-') + "/candles" +
+                        "?granularity=" + secondsPerCandle +
+                        "&start=" + startDateString +
+                        "&end=" + endDateString;
+
+                if (startTime <= EARLIEST_DATA) {
+                    // signal more data is false
+                    return CompletableFuture.completedFuture(Collections.emptyList());
+                }
+
+                return HttpClient.newHttpClient().sendAsync(
+                        HttpRequest.newBuilder()
+                                .uri(URI.create(uriStr))
+                                .GET().build(),
+                        HttpResponse.BodyHandlers.ofString())
+                        .thenApply(HttpResponse::body)
+                        .thenApply(response -> {
+                            logger.info("coinbase response: " + response);
+                            JsonNode res;
+                            try {
+                                res = OBJECT_MAPPER.readTree(response);
+                            } catch (JsonProcessingException ex) {
+                                throw new RuntimeException(ex);
+                            }
+
+                            if (!res.isEmpty()) {
+                                // Remove the current in-progress candle
+                                if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
+                                    ((ArrayNode) res).remove(0);
+                                }
+                                endTime.set(startTime);
+
+                                List<CandleData> candleData = new ArrayList<>();
+                                for (JsonNode candle : res) {
+                                    candleData.add(new CandleData(
+                                            candle.get(3).asDouble(),  // open price
+                                            candle.get(4).asDouble(),  // close price
+                                            candle.get(2).asDouble(),  // high price
+                                            candle.get(1).asDouble(),  // low price
+                                            candle.get(0).asInt(),     // open time
+                                            candle.get(5).asDouble()   // volume
+                                    ));
+                                }
+                                candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
+                                return candleData;
+                            } else {
+                                return Collections.emptyList();
+                            }
+                        });
+            }
+        }
+
         /**
          * Fetches the recent trades for the given trade pair from now until {@code stopAt}.
          * <p>
-         * This method only needs to be implemented if live syncing is on.
-         *
-         * @param tradePair
-         * @param stopAt
-         * @return
+         * This method only needs to be implemented to support live syncing.
          */
         @Override
         public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
@@ -167,52 +249,21 @@ public class CandleStickChartExample extends Application {
 
             return futureResult;
         }
-    }
 
-    public static class CoinbaseCandleDataSupplier extends CandleDataSupplier {
-        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
-
-        CoinbaseCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-            super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
-        }
-
+        /**
+         * This method only needs to be implemented to support live syncing.
+         */
         @Override
-        public Set<Integer> getSupportedGranularities() {
-            // https://docs.pro.coinbase.com/#get-historic-rates
-            return new TreeSet<>(Set.of(60, 300, 900, 3600, 21600, 86400));
-        }
-
-        @Override
-        public Future<List<CandleData>> get() {
-            if (endTime.get() == -1) {
-                endTime.set((int) (Instant.now().toEpochMilli() / 1000L));
-            }
-
-            String endDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                    .format(LocalDateTime.ofEpochSecond(endTime.get(), 0, ZoneOffset.UTC));
-
-            int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
-            String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                    .format(LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC));
-
-            String uriStr = "https://api.pro.coinbase.com/" +
-                    "products/" + tradePair.toString('-') + "/candles" +
-                    "?granularity=" + secondsPerCandle +
-                    "&start=" + startDateString +
-                    "&end=" + endDateString;
-
-            if (startTime <= EARLIEST_DATA) {
-                // signal more data is false
-                return CompletableFuture.completedFuture(Collections.emptyList());
-            }
-
+        public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+                TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+            String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
+                    currentCandleStartedAt, ZoneOffset.UTC));
+            long granularity = Math.max(10, secondsIntoCurrentCandle / 200);
             return HttpClient.newHttpClient().sendAsync(
                     HttpRequest.newBuilder()
-                            .uri(URI.create(uriStr))
+                            .uri(URI.create(String.format(
+                                    "https://api.pro.coinbase.com/products/%s/candles?granularity=%s&start=%s",
+                                    tradePair.toString('-'), granularity, startDateString)))
                             .GET().build(),
                     HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
@@ -225,29 +276,53 @@ public class CandleStickChartExample extends Application {
                             throw new RuntimeException(ex);
                         }
 
-                        if (!res.isEmpty()) {
-                            // Remove the current in-progress candle
-                            if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
-                                ((ArrayNode) res).remove(0);
-                            }
-                            endTime.set(startTime);
-
-                            List<CandleData> candleData = new ArrayList<>();
-                            for (JsonNode candle : res) {
-                                candleData.add(new CandleData(
-                                        candle.get(3).asDouble(),  // open price
-                                        candle.get(4).asDouble(),  // close price
-                                        candle.get(2).asDouble(),  // high price
-                                        candle.get(1).asDouble(),  // low price
-                                        candle.get(0).asInt(),     // open time
-                                        candle.get(5).asDouble()   // volume
-                                ));
-                            }
-                            candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
-                            return candleData;
-                        } else {
-                            return Collections.emptyList();
+                        if (res.isEmpty()) {
+                            return Optional.empty();
                         }
+
+                        JsonNode currCandle;
+                        Iterator<JsonNode> candleItr = res.iterator();
+                        int currentTill = -1;
+                        double openPrice = -1;
+                        double highSoFar = -1;
+                        double lowSoFar = Double.MAX_VALUE;
+                        double volumeSoFar = 0;
+                        double lastTradePrice = -1;
+                        boolean foundFirst = false;
+                        while (candleItr.hasNext()) {
+                            currCandle = candleItr.next();
+                            if (currCandle.get(0).asInt() < currentCandleStartedAt.getEpochSecond() ||
+                                    currCandle.get(0).asInt() >= currentCandleStartedAt.getEpochSecond() +
+                                            secondsPerCandle) {
+                                // skip this sub-candle if it is not in the parent candle's duration (this is just a
+                                // sanity guard) TODO(mike): Consider making this a "break;" once we understand why
+                                //  Coinbase is  not respecting start/end times
+                                continue;
+                            } else {
+                                if (!foundFirst) {
+                                    currentTill = currCandle.get(0).asInt();
+                                    lastTradePrice = currCandle.get(4).asDouble();
+                                    foundFirst = true;
+                                }
+                            }
+
+                            openPrice = currCandle.get(3).asDouble();
+
+                            if (currCandle.get(2).asDouble() > highSoFar) {
+                                highSoFar = currCandle.get(2).asDouble();
+                            }
+
+                            if (currCandle.get(1).asDouble() < lowSoFar) {
+                                lowSoFar = currCandle.get(1).asDouble();
+                            }
+
+                            volumeSoFar += currCandle.get(5).asDouble();
+                        }
+
+                        int openTime = (int) (currentCandleStartedAt.toEpochMilli() / 1000L);
+
+                        return Optional.of(new InProgressCandleData(openTime, openPrice, highSoFar, lowSoFar,
+                                currentTill, lastTradePrice, volumeSoFar));
                     });
         }
     }

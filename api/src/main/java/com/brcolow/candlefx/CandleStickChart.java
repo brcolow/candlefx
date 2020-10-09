@@ -304,18 +304,16 @@ public class CandleStickChart extends Region {
             canvas.getParent().addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
         } else {
             canvas.parentProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue == null) {
-                    return;
+                if (newValue != null) {
+                    newValue.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+                        mousePrevX = -1;
+                        mousePrevY = -1;
+                    });
+
+                    newValue.addEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
+                    newValue.addEventFilter(ScrollEvent.SCROLL, scrollHandler);
+                    newValue.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
                 }
-
-                newValue.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-                    mousePrevX = -1;
-                    mousePrevY = -1;
-                });
-
-                newValue.addEventFilter(MouseEvent.MOUSE_DRAGGED, mouseDraggedHandler);
-                newValue.addEventFilter(ScrollEvent.SCROLL, scrollHandler);
-                newValue.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
             });
         }
     }
@@ -331,16 +329,16 @@ public class CandleStickChart extends Region {
             if (!progressIndicatorVisible) {
                 int desiredXLowerBound = (int) xAxis.getLowerBound() + (deltaX == 1 ? secondsPerCandle : -secondsPerCandle);
 
-                // Prevent moving in the positive direction past the point where only "minCandlesRemaining" candles remain
-                // on the left-most part of the screen.
+                // Prevent moving in the positive direction past the point where only "minCandlesRemaining" candles
+                // remain on the left-most part of the chart.
                 int minCandlesRemaining = 3;
                 if (desiredXLowerBound <= data.lastEntry().getValue().getOpenTime() -
-                        ((minCandlesRemaining - 1) * secondsPerCandle)) {
+                        (minCandlesRemaining - 1) * secondsPerCandle) {
                     if (desiredXLowerBound <= currZoomLevel.getMinXValue()) {
                         CompletableFuture.supplyAsync(candleDataPager.getCandleDataSupplier()).thenAccept(
                                 candleDataPager.getCandleDataPreProcessor()).whenComplete((result, throwable) -> {
-                            // We need to show the loading indicator and freeze the chart during the time that
-                            // the new data is being fetched.
+                            // Show the loading indicator and freeze the chart during the time that the new data is
+                            // being paged in.
                             if (throwable != null) {
                                 logger.error("exception: ", throwable);
                             }
@@ -371,7 +369,7 @@ public class CandleStickChart extends Region {
      * of deltaX. Currently the magnitude of deltaX does not matter (each call to this method only moves
      * the duration of one full candle).
      *
-     * @param deltaX set the bounds either one candle over to the right or left
+     * @param deltaX set the bounds either one candle over to the right or left from the current position
      */
     private void setAxisBoundsForMove(int deltaX) {
         if (deltaX == 1) {
@@ -398,10 +396,9 @@ public class CandleStickChart extends Region {
             logger.error("extrema map: " + new TreeMap<>(currZoomLevel.getExtremaForCandleRangeMap()));
         }
 
-        // The y-axis and extra axis extrema are obtained using a key offset by minus one candle. This makes
+        // The y-axis and extra axis extrema are obtained using a key offset by minus one candle duration. This makes
         // the chart work correctly. I don't fully understand the logic behind it, so I am leaving a note for
         // my future self.
-        logger.info("currZoomLevel = " + currZoomLevel);
         Pair<Extrema<Integer>, Extrema<Integer>> extremaForRange = currZoomLevel.getExtremaForCandleRangeMap().get(
                 (int) xAxis.getLowerBound() - secondsPerCandle);
         // FIXME: Figure out why this is null
@@ -481,13 +478,13 @@ public class CandleStickChart extends Region {
     }
 
     /**
-     * Draws the chart contents on the canvas corresponding to the x-axis, y-axis, and extra (volume) axis
-     * bounds at the time this method is called.
+     * Draws the chart contents on the canvas corresponding to the current x-axis, y-axis, and extra (volume) axis
+     * bounds.
      */
     private void drawChartContents(boolean clearCanvas) {
         // TODO should this expression start with (xAxis.getUpperBound() - secondsPerCandle)?
         // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
-        int numCandlesToSkip = Math.max((((int) xAxis.getUpperBound()) - data.lastEntry().getValue().getOpenTime()) /
+        int numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() - data.lastEntry().getValue().getOpenTime()) /
                 secondsPerCandle, 0);
 
         logger.info("numCandlesToSkip = " + numCandlesToSkip);
@@ -500,7 +497,7 @@ public class CandleStickChart extends Region {
                 if (numCandlesToSkip == 0) {
                     // Make room for the new in-progress candle.
                     moveAlongX(1, true);
-                    numCandlesToSkip = Math.max((((int) xAxis.getUpperBound()) -
+                    numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() -
                             data.lastEntry().getValue().getOpenTime()) / secondsPerCandle, 0);
                 }
             }
@@ -519,7 +516,6 @@ public class CandleStickChart extends Region {
                         (((int) currZoomLevel.getNumVisibleCandles()) * secondsPerCandle), true,
                 ((int) xAxis.getUpperBound() - secondsPerCandle) - (numCandlesToSkip * secondsPerCandle), true);
 
-        // FIXME: This is making a map that is *half* the size of the number of visible candles...wtf!?
         logger.info("size of candlesToDraw: " + candlesToDraw.size());
         if (chartOptions.isHorizontalGridLinesVisible()) {
             // Draw horizontal grid lines aligned with y-axis major tick marks
@@ -550,7 +546,7 @@ public class CandleStickChart extends Region {
         double lastClose = -1;
         for (CandleData candleDatum : candlesToDraw.descendingMap().values()) {
             // TODO(mike): We could change the sliding window extrema function to map to doubles instead of ints
-            // and use that here
+            // and use that here instead of iterating over the candle data again.
             if (candleIndex < currZoomLevel.getNumVisibleCandles() + 2) {
                 // We don't want to draw the high/low markers off-screen, so we guard it with the above condition.
                 if (candleDatum.getHighPrice() > highestCandleValue) {
@@ -565,6 +561,7 @@ public class CandleStickChart extends Region {
             }
 
             if (candleDatum.isPlaceHolder()) {
+                // A placeholder candle is placed in a duration where no trading activity occurred.
                 graphicsContext.beginPath();
                 double candleOpenPrice = candleDatum.getOpenPrice();
                 if (chartOptions.isAlignOpenClose() && lastClose != -1) {
@@ -626,7 +623,7 @@ public class CandleStickChart extends Region {
                 graphicsContext.stroke();
                 graphicsContext.beginPath(); // TODO(mike): Delete this line?
 
-                // draw high line (skip draw if the open (or close) is the same as the high
+                // Draw high line (skip draw if the open (or close) is the same as the high.
                 boolean drawHighLine = true;
                 if (openAboveClose) {
                     if (candleOpenPrice == candleDatum.getHighPrice()) {
@@ -654,7 +651,7 @@ public class CandleStickChart extends Region {
                     graphicsContext.stroke();
                 }
 
-                // draw low line (skip draw if the close (or open) is the same as the low
+                // Draw low line (skip draw if the close (or open) is the same as the low.
                 boolean drawLowLine = true;
                 if (openAboveClose) {
                     if (candleDatum.getClosePrice() == candleDatum.getLowPrice()) {
@@ -698,11 +695,11 @@ public class CandleStickChart extends Region {
             }
 
             lastClose = candleDatum.getClosePrice();
-
             candleIndex++;
         }
 
-        // draw high and low markers
+        // Draw arrows to the extrema for the currently visible candles (helps to easily see the highs and lows of
+        // the current range without needing to visually trace to the axis).
         graphicsContext.setFont(canvasNumberFont);
         graphicsContext.setTextBaseline(VPos.CENTER);
         graphicsContext.setFill(AXIS_TICK_LABEL_COLOR);
@@ -761,11 +758,12 @@ public class CandleStickChart extends Region {
         }
         int newCandleWidth = currZoomLevel.getCandleWidth() - multiplier;
         if (newCandleWidth <= 1) {
+            // Can't go below one pixel for candle width.
             return;
         }
 
-        int newLowerBoundX = (int) (xAxis.getUpperBound() - (((int) (canvas.getWidth() /
-                newCandleWidth)) * secondsPerCandle));
+        int newLowerBoundX = (int) (xAxis.getUpperBound() - ((int) (canvas.getWidth() /
+                newCandleWidth) * secondsPerCandle));
         if (newLowerBoundX > data.lastEntry().getValue().getOpenTime() - (2 * secondsPerCandle)) {
             return;
         }
@@ -775,9 +773,9 @@ public class CandleStickChart extends Region {
 
         if (!zoomLevelMap.containsKey(nextZoomLevelId)) {
             // We can use the minXValue of the current zoom level here because, given a sequence of zoom-levels
-            // z(0), z(1), ... z(n) that the chart goes through, z(x).minXValue <= z(y).minXValue for all x > y. That
-            // is, if we are currently at a max/min zoom-level in zoomLevelMap, there is no other zoom-level that
-            // has a lower minXValue.
+            // z(0), z(1), ... z(n) that the chart has gone through, z(x).minXValue <= z(y).minXValue for all x > y.
+            // That is, if we are currently at a max/min zoom-level in zoomLevelMap, there is no other zoom-level that
+            // has a lower minXValue (assuming we did not start at the maximum or mimnimum zoom level).
             ZoomLevel newZoomLevel = new ZoomLevel(nextZoomLevelId, newCandleWidth, secondsPerCandle,
                     canvas.widthProperty(), getXAxisFormatterForRange(xAxis.getUpperBound() - newLowerBoundX),
                     currMinXValue);
@@ -824,8 +822,8 @@ public class CandleStickChart extends Region {
                 currZoomLevel = newZoomLevel;
             }
         } else {
-            // TODO(mike): In this case we only need to compute the extrema for any new data that has been paged in
-            // since the last time we were at this zoom level.
+            // TODO(mike): In this case we only need to compute the extrema for any new live syncing data that has
+            //  happened since the last time we were at this zoom level.
             currZoomLevel = zoomLevelMap.get(nextZoomLevelId);
             List<CandleData> candleData = new ArrayList<>(data.values());
             putSlidingWindowExtrema(currZoomLevel.getExtremaForCandleRangeMap(), candleData,
@@ -886,7 +884,7 @@ public class CandleStickChart extends Region {
             // Because the chart has been resized, the number of visible candles has changed and thus we must
             // recompute the sliding window extrema where the size of the sliding window is the new number of
             // visible candles.
-            int newLowerBoundX = (int) (xAxis.getUpperBound() - (((int) currZoomLevel.getNumVisibleCandles()) *
+            int newLowerBoundX = (int) (xAxis.getUpperBound() - ((int) currZoomLevel.getNumVisibleCandles() *
                     secondsPerCandle));
             if (newLowerBoundX < currZoomLevel.getMinXValue()) {
                 // We need to try and request more data so that we can properly resize the chart.
@@ -1049,8 +1047,10 @@ public class CandleStickChart extends Region {
                     // is displaying one hour per candle and secondsIntoCurrentCandle is 1800 (30 minutes). Then we
                     // would request candles starting from when the current in-progress candle started but with
                     // a duration of 1800/200 (as 200 is the limit of candles per page). This would give us 9 second
-                    // candles that we can then sum. This will catch the data up to within 9 seconds of current time
-                    // (or in this case roughly within 0.25% of current time).
+                    // candles that we can then sum. FIXME: Don't we need to make sure that 9 seconds is a supported
+                    //   granularity? If so we must pick the closest one.
+                    // This will catch the data up to within 9 seconds of current time (or in this case roughly within
+                    // 0.25% of current time).
                     CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = exchange
                             .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
                                     candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
