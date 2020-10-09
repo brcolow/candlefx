@@ -6,7 +6,6 @@ import com.brcolow.candlefx.CandleStickChartContainer;
 import com.brcolow.candlefx.Currency;
 import com.brcolow.candlefx.DefaultMoney;
 import com.brcolow.candlefx.Exchange;
-import com.brcolow.candlefx.GlyphFonts;
 import com.brcolow.candlefx.Side;
 import com.brcolow.candlefx.Trade;
 import com.brcolow.candlefx.TradePair;
@@ -63,7 +62,6 @@ public class CandleStickChartExample extends Application {
     public void start(Stage primaryStage) {
         Platform.setImplicitExit(false);
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> logger.error("[" + thread + "]: ", exception));
-        GlyphFonts.loadFonts();
         CandleStickChartContainer candleStickChartContainer =
                 new CandleStickChartContainer(
                         new Coinbase(), BTC_USD);

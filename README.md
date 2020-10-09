@@ -163,7 +163,6 @@ The `FastMoney` implementation from [mikvor/money-conversion](https://github.com
 
 ## TODO
 
-* Remove the now unused FontAwesome glyph code stuff.
 * Flesh out a full README example.
 * Add examples from more cryptocurrency exchanges.
 * Create subpackages (monetary, controls, etc.) and have better separation of private/public API with help of JPMS.

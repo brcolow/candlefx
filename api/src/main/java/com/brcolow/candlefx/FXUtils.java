@@ -67,14 +67,6 @@ public class FXUtils {
         return computeTextDimensions(text, font, 0, null, "");
     }
 
-    public static Dimension2D computeTextDimensions(Glyph glyph) {
-        return computeTextDimensions(glyph.getText(), glyph.getFont(), 0, null, glyph.getStyle());
-    }
-
-    public static Dimension2D computeTextDimensions(Glyph glyph, Font font) {
-        return computeTextDimensions(glyph.getText(), font, 0, null, glyph.getStyle());
-    }
-
     /**
      * Computes and returns the dimensions ({@code Dimension2D}) of the given string of text with
      * the given formatting options.
