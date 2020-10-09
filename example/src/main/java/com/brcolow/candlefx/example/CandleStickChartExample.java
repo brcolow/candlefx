@@ -258,6 +258,7 @@ public class CandleStickChartExample extends Application {
                 TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
             String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                     currentCandleStartedAt, ZoneOffset.UTC));
+            // FIXME: Make sure the granularity is supported!
             long granularity = Math.max(10, secondsIntoCurrentCandle / 200);
             return HttpClient.newHttpClient().sendAsync(
                     HttpRequest.newBuilder()

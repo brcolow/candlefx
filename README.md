@@ -13,6 +13,7 @@ the magic of search engines (including Github's own)).
 
 ## Getting Started
 
+### Simplest Possible Chart
 CandleFX can display real-time candle-stick charts for trading commodities but let's start, for simplicity's sake, with
 a candle-stick chart that only displays historical (past) trading data. The full source code for these examples can
 be found in [CandleStickChartExample](./example/src/main/java/com/brcolow/candlefx/example/CandleStickChartExample.java).
@@ -147,7 +148,33 @@ candleStickChartContainer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 Scene scene = new Scene(new AnchorPane(candleStickChartContainer), 1200, 800);
 ```
 
-To be continued...
+### Enable Live Syncing to Create a Real-Time Chart
+
+Now that we have constructed a simple chart that starts contains data from when the chart is created (and can go
+backwards to the first trade of that tradepair on that exchange) we now want to look at creating a real-time chart
+that updates as trades happen. This means that, if the most recent candle is in the view port, it will be redrawn
+as trades happen and, once the current candle duration is over, the chart will add a new candle to the right
+and begin syncing it with current trading activity.
+
+In order to support live syncing mode we need to implement two additional methods of the `Exchange` class:
+
+```java
+@Override
+CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+    TradePair tradePair,
+    Instant currentCandleStartedAt,
+    long secondsIntoCurrentCandle,
+    int secondsPerCandle) {}
+
+@Override
+CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {}
+```
+
+The first method fetches data using a "sub-candle method" (that is, fetching data for completed candles of a less
+duration than the chart's selected granularity. The second method is then used to fetch the raw, individual trades
+for the duration between the last sub-candle (from the first method) and the current time. We go through the trouble
+of having these two methods work in tandem (as opposed to only needing the second method) because it can take a
+prohibitively long time to fetch the raw trade data in the candle duration is too large.
 
 ## Attribution
 
