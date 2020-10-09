@@ -165,6 +165,7 @@ The `FastMoney` implementation from [mikvor/money-conversion](https://github.com
 
 * Flesh out a full README example.
 * Add examples from more cryptocurrency exchanges.
+* Add example using finnhub.io (https://finnhub.io/docs/api#stock-candles).
 * Create subpackages (monetary, controls, etc.) and have better separation of private/public API with help of JPMS.
 * Create websocket interface instead of having a strong tie to one websocket library so consumers can plug in their
 desired one.

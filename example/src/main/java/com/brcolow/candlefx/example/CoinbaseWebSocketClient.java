@@ -30,7 +30,6 @@ import java.util.Set;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
-
 /**
  * @author Michael Ennen
  */

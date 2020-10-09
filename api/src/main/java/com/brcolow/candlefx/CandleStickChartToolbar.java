@@ -161,26 +161,24 @@ public class CandleStickChartToolbar extends Region {
 
     void setActiveToolbarButton(IntegerProperty secondsPerCandle) {
         Objects.requireNonNull(secondsPerCandle);
-        for (Node tool : toolbar.getChildren()) {
-            if (tool instanceof ToolbarButton) {
-                ToolbarButton toolbarButton = (ToolbarButton) tool;
-                toolbarButton.setActive(secondsPerCandle.get() == toolbarButton.duration);
+        for (Node childNode : toolbar.getChildren()) {
+            if (childNode instanceof ToolbarButton) {
+                ToolbarButton tool = (ToolbarButton) childNode;
+                tool.setActive(secondsPerCandle.get() == tool.duration);
             }
         }
     }
 
     void registerEventHandlers(CandleStickChart candleStickChart, IntegerProperty secondsPerCandle) {
-        Objects.requireNonNull(candleStickChart);
         Objects.requireNonNull(secondsPerCandle);
-        for (Node tool : toolbar.getChildren()) {
-            if (tool instanceof ToolbarButton) {
-                ToolbarButton toolbarButton = (ToolbarButton) tool;
-
-                if (toolbarButton.duration != -1) {
-                    toolbarButton.setOnAction(event -> secondsPerCandle.setValue(toolbarButton.duration));
-                } else if (toolbarButton.tool != null && toolbarButton.tool.isZoomFunction()) {
-                    toolbarButton.setOnAction(event -> candleStickChart.changeZoom(
-                            toolbarButton.tool.getZoomDirection()));
+        for (Node childNode : toolbar.getChildren()) {
+            if (childNode instanceof ToolbarButton) {
+                ToolbarButton tool = (ToolbarButton) childNode;
+                if (tool.duration != -1) {
+                    tool.setOnAction(event -> secondsPerCandle.setValue(tool.duration));
+                } else if (tool.tool != null && tool.tool.isZoomFunction()) {
+                    tool.setOnAction(event -> candleStickChart.changeZoom(
+                            tool.tool.getZoomDirection()));
                 }
             }
         }

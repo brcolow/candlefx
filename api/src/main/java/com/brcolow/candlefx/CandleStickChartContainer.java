@@ -56,11 +56,13 @@ public class CandleStickChartContainer extends Region {
         containerRoot.prefHeightProperty().bind(prefHeightProperty());
         containerRoot.prefWidthProperty().bind(prefWidthProperty());
         getChildren().setAll(containerRoot);
+        // FIXME: candleStickChart is null at this point.
         toolbar.registerEventHandlers(candleStickChart, secondsPerCandle);
 
         secondsPerCandle.addListener((observableDurationValue, oldDurationValue, newDurationValue) -> {
             if (!oldDurationValue.equals(newDurationValue)) {
                 createNewChart(newDurationValue.intValue());
+                toolbar.registerEventHandlers(candleStickChart, secondsPerCandle);
                 toolbar.setChartOptions(candleStickChart.getChartOptions());
                 toolbar.setActiveToolbarButton(secondsPerCandle);
                 animateInNewChart(candleStickChart);
