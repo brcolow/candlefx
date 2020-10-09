@@ -25,12 +25,24 @@ public abstract class Exchange {
         return webSocketClient;
     }
 
+    /**
+     * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
+     * <p>
+     * This method only needs to be implemented to support live syncing.
+     */
     public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
 
+    /**
+     * Returns the {@code CandleDataSupplier} implementation that will be used to provide pages of candle data for the
+     * given {@code secondsPerCandle} and {@code tradePair}.
+     */
     public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
 
     /**
-     * This must be implemented to support live-syncing candle stick charts.
+     * Fetches completed candles (of smaller duration than the current {@code secondsPerCandle}) in the duration of
+     * the current live-syncing candle.
+     * <p>
+     * TThis method only needs to be implemented to support live syncing.
      */
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {

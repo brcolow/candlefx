@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -176,7 +177,7 @@ public class CandleStickChartExample extends Application {
         }
 
         /**
-         * Fetches the recent trades for the given trade pair from now until {@code stopAt}.
+         * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
          * <p>
          * This method only needs to be implemented to support live syncing.
          */
@@ -258,13 +259,16 @@ public class CandleStickChartExample extends Application {
                 TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
             String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                     currentCandleStartedAt, ZoneOffset.UTC));
-            // FIXME: Make sure the granularity is supported!
-            long granularity = Math.max(10, secondsIntoCurrentCandle / 200);
+            long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
+            // Get the closest supported granularity to the ideal granularity.
+            int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
+                    .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
+                    .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
             return HttpClient.newHttpClient().sendAsync(
                     HttpRequest.newBuilder()
                             .uri(URI.create(String.format(
                                     "https://api.pro.coinbase.com/products/%s/candles?granularity=%s&start=%s",
-                                    tradePair.toString('-'), granularity, startDateString)))
+                                    tradePair.toString('-'), actualGranularity, startDateString)))
                             .GET().build(),
                     HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
@@ -301,6 +305,7 @@ public class CandleStickChartExample extends Application {
                                 continue;
                             } else {
                                 if (!foundFirst) {
+                                    // FIXME: Why are we only using the first sub-candle here?
                                     currentTill = currCandle.get(0).asInt();
                                     lastTradePrice = currCandle.get(4).asDouble();
                                     foundFirst = true;

@@ -26,7 +26,14 @@ public class CandleStickChartContainer extends Region {
     private final SimpleIntegerProperty secondsPerCandle;
     private CandleStickChart candleStickChart;
 
+    /**
+     * Construct a new {@code CandleStickChartContainer} with liveSyncing mode off.
+     */
     public CandleStickChartContainer(Exchange exchange, TradePair tradePair) {
+        this(exchange, tradePair, false);
+    }
+
+    public CandleStickChartContainer(Exchange exchange, TradePair tradePair, boolean liveSyncing) {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
         this.exchange = exchange;
@@ -61,7 +68,7 @@ public class CandleStickChartContainer extends Region {
 
         secondsPerCandle.addListener((observableDurationValue, oldDurationValue, newDurationValue) -> {
             if (!oldDurationValue.equals(newDurationValue)) {
-                createNewChart(newDurationValue.intValue());
+                createNewChart(newDurationValue.intValue(), liveSyncing);
                 toolbar.registerEventHandlers(candleStickChart, secondsPerCandle);
                 toolbar.setChartOptions(candleStickChart.getChartOptions());
                 toolbar.setActiveToolbarButton(secondsPerCandle);
@@ -72,7 +79,7 @@ public class CandleStickChartContainer extends Region {
         //secondsPerCandle.set(300);
     }
 
-    private void createNewChart(int secondsPerCandle) {
+    private void createNewChart(int secondsPerCandle, boolean liveSyncing) {
         if (secondsPerCandle <= 0) {
             throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
         }
@@ -81,7 +88,7 @@ public class CandleStickChartContainer extends Region {
                 secondsPerCandle.get(), TradePair.of(amountUnit, priceUnit));
         */
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
-                tradePair, false, secondsPerCandle, widthProperty(), heightProperty());
+                tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty());
     }
 
     private void animateInNewChart(CandleStickChart newChart) {
