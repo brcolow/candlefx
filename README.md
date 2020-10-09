@@ -192,6 +192,8 @@ public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInPro
     int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
             .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
             .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
+    // TODO: If actualGranularity = secondsPerCandle there are no sub-candles to fetch and we must get all the
+    //  data for the current live syncing candle from the raw trades method.
     return HttpClient.newHttpClient().sendAsync(
             HttpRequest.newBuilder()
                     .uri(URI.create(String.format(
