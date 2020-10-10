@@ -68,7 +68,7 @@ public class CandleStickChartExample extends Application {
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> logger.error("[" + thread + "]: ", exception));
         CandleStickChartContainer candleStickChartContainer =
                 new CandleStickChartContainer(
-                        new Coinbase(), BTC_USD);
+                        new Coinbase(), BTC_USD, true);
         AnchorPane.setTopAnchor(candleStickChartContainer, 30.0);
         AnchorPane.setLeftAnchor(candleStickChartContainer, 30.0);
         AnchorPane.setRightAnchor(candleStickChartContainer, 30.0);
@@ -77,7 +77,7 @@ public class CandleStickChartExample extends Application {
                 Double.MAX_VALUE);
         Scene scene = new Scene(new AnchorPane(candleStickChartContainer), 1200, 800);
         scene.getStylesheets().add(CandleStickChartExample.class.getResource("/css/chart.css").toExternalForm());
-        scene.getStylesheets().add(CandleStickChartExample.class.getResource("/css/glyph.css").toExternalForm());
+        //scene.getStylesheets().add(CandleStickChartExample.class.getResource("/css/glyph.css").toExternalForm());
         primaryStage.setTitle("CandleFX - Candlestick Charts for JavaFX");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -197,6 +197,10 @@ public class CandleStickChartExample extends Application {
                 IntegerProperty afterCursor = new SimpleIntegerProperty(0);
                 List<Trade> tradesBeforeStopTime = new ArrayList<>();
 
+                // For Public Endpoints, our rate limit is 3 requests per second, up to 6 requests per second in
+                // burst.
+                // We will know if we get rate limited if we get a 429 response code.
+                // FIXME: We need to address this!
                 for (int i = 0; !futureResult.isDone(); i++) {
                     String uriStr = "https://api.pro.coinbase.com/";
                     uriStr += "products/" + tradePair.toString('-') + "/trades";
@@ -211,13 +215,15 @@ public class CandleStickChartExample extends Application {
                                         .uri(URI.create(uriStr))
                                         .GET().build(),
                                 HttpResponse.BodyHandlers.ofString());
-                        if (response.headers().firstValue("cb-after").isEmpty()) {
+
+                        logger.info("response headers: " + response.headers());
+                        if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                             futureResult.completeExceptionally(new RuntimeException(
                                     "coinbase trades response did not contain header \"cb-after\": " + response));
                             return;
                         }
 
-                        afterCursor.setValue(Integer.valueOf((response.headers().firstValue("cb-after").get())));
+                        afterCursor.setValue(Integer.valueOf((response.headers().firstValue("CB-AFTER").get())));
 
                         JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
 

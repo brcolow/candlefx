@@ -235,6 +235,7 @@ public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInPro
                     } else {
                         if (!foundFirst) {
                             // FIXME: Why are we only using the first sub-candle here?
+                            //  Unless foundFirst is actually the *last* (that is, most recent in time) sub-candle?
                             currentTill = currCandle.get(0).asInt();
                             lastTradePrice = currCandle.get(4).asDouble();
                             foundFirst = true;
