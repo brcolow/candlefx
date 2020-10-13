@@ -487,7 +487,6 @@ public class CandleStickChart extends Region {
         int numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() - data.lastEntry().getValue().getOpenTime()) /
                 secondsPerCandle, 0);
 
-        logger.info("numCandlesToSkip = " + numCandlesToSkip);
         if (liveSyncing && inProgressCandleLastDraw != inProgressCandle.getOpenTime()) {
             // The duration of the last in-progress candle has ended, see if it is visible on screen.
             if (xAxis.getUpperBound() >= inProgressCandleLastDraw && xAxis.getUpperBound() <
@@ -511,12 +510,11 @@ public class CandleStickChart extends Region {
 
         double monetaryUnitsPerPixel = (yAxis.getUpperBound() - yAxis.getLowerBound()) / canvas.getHeight();
         double pixelsPerMonetaryUnit = 1d / monetaryUnitsPerPixel;
-        logger.info("num visible candles: " + ((int) currZoomLevel.getNumVisibleCandles()));
         NavigableMap<Integer, CandleData> candlesToDraw = data.subMap(((int) xAxis.getUpperBound() - secondsPerCandle) -
                         (((int) currZoomLevel.getNumVisibleCandles()) * secondsPerCandle), true,
                 ((int) xAxis.getUpperBound() - secondsPerCandle) - (numCandlesToSkip * secondsPerCandle), true);
 
-        logger.info("size of candlesToDraw: " + candlesToDraw.size());
+        logger.info("Drawing " + candlesToDraw.size() + " candles.");
         if (chartOptions.isHorizontalGridLinesVisible()) {
             // Draw horizontal grid lines aligned with y-axis major tick marks
             for (Axis.TickMark<Number> tickMark : yAxis.getTickMarks()) {
@@ -714,12 +712,12 @@ public class CandleStickChart extends Region {
         boolean skipLowMark = lowMarkYPos - highMarkYPos < canvasNumberFont.getSize() &&
                 candleIndexOfHighest == candleIndexOfLowest;
         // TODO(mike): In addition to drawing the high/low markers to the left or right of the extrema, we should
-        // also (or maybe instead) factor in how visible the marker will be. This can be determined by seeing
-        // if it will be obscured by neighboring candles (if there is very low volatility, for example). See
-        // obscure.png for an example of where the marker is obscured by neighboring candles. Also, when the
-        // upper bound is past the highest x-value (and we draw less than numVisibleCandles on the chart),
-        // we need to shift the candle indices tom see which "side" of chart the extrema is (this might not be
-        // necessary).
+        //  also (or maybe instead) factor in how visible the marker will be. This can be determined by seeing
+        //  if it will be obscured by neighboring candles (if there is very low volatility, for example). See
+        //  obscure.png for an example of where the marker is obscured by neighboring candles. Also, when the
+        //  upper bound is past the highest x-value (and we draw less than numVisibleCandles on the chart),
+        //  we need to shift the candle indices to see which "side" of chart the extrema is (this might not be
+        //  necessary).
         if (candleIndexOfHighest > currZoomLevel.getNumVisibleCandles() * 0.5) {
             // draw high marker to the right of the candle (arrow points to the left)
             double xPos = ((canvas.getWidth() - (candleIndexOfHighest * candleWidth)) + halfCandleWidth) + 2;
@@ -1046,11 +1044,10 @@ public class CandleStickChart extends Region {
                     // We first attempt to get caught up by simply requesting shorter duration candles. Say this chart
                     // is displaying one hour per candle and secondsIntoCurrentCandle is 1800 (30 minutes). Then we
                     // would request candles starting from when the current in-progress candle started but with
-                    // a duration of 1800/200 (as 200 is the limit of candles per page). This would give us 9 second
-                    // candles that we can then sum. FIXME: Don't we need to make sure that 9 seconds is a supported
-                    //   granularity? If so we must pick the closest one.
-                    // This will catch the data up to within 9 seconds of current time (or in this case roughly within
-                    // 0.25% of current time).
+                    // a supported duration closest to, but less than the current duration, 1800/200 (as 200 is the
+                    // limit of candles per page). This would give us 9 second candles that we can then sum. This will
+                    // catch the data up to within 9 seconds of current time (or in this case roughly within 0.25% of
+                    // current time).
                     CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = exchange
                             .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
                                     candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),

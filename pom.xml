@@ -94,6 +94,8 @@
            <release>12</release>
            <debug>true</debug>
            <debuglevel>lines,vars,source</debuglevel>
+           <source>14</source>
+           <target>14</target>
          </configuration>
        </plugin>
 
